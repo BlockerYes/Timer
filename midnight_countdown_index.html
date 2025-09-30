@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>US Government Shutdown</title>
+  <style>
+    :root{
+      --bg1: #0f172a;
+      --bg2: #0b1220;
+      --accent: #60a5fa;
+      --glass: rgba(255,255,255,0.06);
+    }
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:#e6eef8;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .card{
+      width:min(880px,92vw);
+      padding:3.2rem;
+      border-radius:18px;
+      text-align:center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      box-shadow: 0 10px 30px rgba(8,12,20,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+      backdrop-filter: blur(6px) saturate(120%);
+    }
+    h1{
+      margin:0 0 0.6rem 0;
+      font-weight:600;
+      letter-spacing:0.6px;
+      font-size:1.4rem;
+      color: #dbeafe;
+    }
+    .subtitle{opacity:0.78;margin:0 0 1.6rem 0;font-size:0.95rem}
+    .countdown{
+      display:flex;
+      gap:1rem;
+      justify-content:center;
+      align-items:stretch;
+      flex-wrap:wrap;
+    }
+    .segment{
+      background:var(--glass);
+      padding:1.05rem 1.25rem;
+      border-radius:12px;
+      min-width:110px;
+      box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+    }
+    .number{
+      font-variant-numeric: tabular-nums;
+      font-weight:700;
+      font-size:2.25rem;
+      line-height:1;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
+    }
+    .label{font-size:0.85rem;opacity:0.85;margin-top:0.45rem}
+    .small-note{margin-top:1.1rem;opacity:0.7;font-size:0.9rem}
+    .muted{opacity:0.6;font-size:0.85rem}
+    @media (max-width:560px){
+      .number{font-size:1.8rem}
+      .segment{min-width:84px;padding:0.8rem}
+    }
+  </style>
+</head>
+<body>
+  <main class="card" role="main">
+    <h1>US Government Shutdown</h1>
+    <p class="subtitle">Shows the time left until the US goverment is supposed to shut down.</p>
+
+    <div class="countdown" aria-live="polite" aria-atomic="true">
+      <div class="segment">
+        <div id="hours" class="number">00</div>
+        <div class="label">Hours</div>
+      </div>
+      <div class="segment">
+        <div id="minutes" class="number">00</div>
+        <div class="label">Minutes</div>
+      </div>
+      <div class="segment">
+        <div id="seconds" class="number">00</div>
+        <div class="label">Seconds</div>
+      </div>
+    </div>
+
+    <p class="small-note muted">Local time: <span id="localtime">--:--:--</span></p>
+  </main>
+
+  <script>
+    // Utility: pad with leading zeros
+    const pad = (n, digits = 2) => String(n).padStart(digits, '0');
+
+    // Elements
+    const hoursEl = document.getElementById('hours');
+    const minsEl = document.getElementById('minutes');
+    const secsEl = document.getElementById('seconds');
+    const localTimeEl = document.getElementById('localtime');
+
+    function getNextMidnight(now = new Date()){
+      const next = new Date(now);
+      next.setHours(24,0,0,0); // sets to midnight of next day
+      return next;
+    }
+
+    function update(){
+      const now = new Date();
+      const nextMidnight = getNextMidnight(now);
+      let diff = nextMidnight - now; // milliseconds
+      if (diff < 0) diff = 0;
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const seconds = totalSeconds % 60;
+      const totalMinutes = Math.floor(totalSeconds / 60);
+      const minutes = totalMinutes % 60;
+      const hours = Math.floor(totalMinutes / 60);
+
+      hoursEl.textContent = pad(hours);
+      minsEl.textContent = pad(minutes);
+      secsEl.textContent = pad(seconds);
+
+      localTimeEl.textContent = now.toLocaleTimeString();
+    }
+
+    // Update immediately, then every 250ms so the clock feels snappy
+    update();
+    const timer = setInterval(update, 250);
+
+    // Accessibility: when page hidden, slow updates (save CPU)
+    document.addEventListener('visibilitychange', ()=>{
+      if (document.hidden){
+        clearInterval(window._countdownTimer);
+        window._countdownTimer = setInterval(update, 2000);
+      } else {
+        clearInterval(window._countdownTimer);
+        update();
+        window._countdownTimer = setInterval(update, 250);
+      }
+    });
+
+    // Ensure we have a global reference so the visibility handler can clear it
+    window._countdownTimer = timer;
+
+    // If you'd like to change target (e.g., a different timezone midnight),
+    // replace getNextMidnight() with a function that returns a Date in that zone.
+  </script>
+</body>
+</html>
